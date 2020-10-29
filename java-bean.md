@@ -162,3 +162,106 @@ public class SuperMan{
 }
 ```
 
+@Repeatable 注解了Person。而@Repeatable后面括号中类相当于一个容器注解。
+
+什么是容器注解呢？就是用来存放其他注解的地方。它本身也是一个注解。
+
+```java
+@interface Persons {
+    Person[]  value();
+}
+```
+
+ 按照规定，它里面必须要有一个 value 的属性，属性类型是一个被 @Repeatable 注解过的注解数组，注意它是数组。 
+
+
+
+## 2.4 注解的属性
+
+ 注解的属性也叫做成员变量。注解只有成员变量，没有方法。注解的成员变量在注解的定义中以“无形参的方法”形式来声明，其方法名定义了该成员变量的名字，其返回值定义了该成员变量的类型。 
+
+例如：
+
+```java
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface TestAnnotation{
+	int id();
+	
+	String msg();
+}
+```
+
+此例定义了 TestAnnotation 这个注解中拥有 id 和 msg 两个属性。在使用的时候，我们应该给它们进行赋值。 
+
+赋值的方式是在注解的括号内以`value=""`的形式，多个属性之间用`,`隔开。
+
+例如：
+
+```java
+@TestAnnotation(id=3, msg="hello annotation")
+public class Test{
+
+}
+```
+
+需要注意的是，在注解中定义属性时它的类型必须是8种基本数据类型外加类、接口、注解以及它们的数组。
+
+注解中属性有默认值，默认值需要用default关键字指定。比如：
+
+```java
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface TestAnnotation{
+	
+	public int id() default -1;
+	public String msg() default "Hi";
+}
+```
+
+ TestAnnotation 中 id 属性默认值为 -1，msg 属性默认值为 Hi。  
+
+ 它可以这样应用。 
+
+```java
+@TestAnnotation()
+public class Test {}
+```
+
+ 因为有默认值，所以无需要再在 @TestAnnotation 后面的括号里面进行赋值了，这一步可以省略。 
+
+另外，还有一种情况。如果一个注解内仅仅只有一个名字为value的属性时，应用这个注解时可以直接将属性值填到括号内。
+
+例如：
+
+```java
+public @interface Check{
+    String value();
+}
+
+//使用Check注解
+@Check("Hi")
+int a;
+
+//使用Check注解
+@Check(value="Hi")
+int a;
+
+```
+
+如果一个注解灭有任何属性，那么在应用这个注解的时候，括号都可以省略。
+
+
+
+## 2.5注解的提取
+
+我通过用标签来比作注解，前面的内容是讲怎么写注解，然后贴到哪个地方去，而现在我们要做的工作就是检阅这些标签内容。 形象的比喻就是你把这些注解标签在合适的时候撕下来，然后检阅上面的内容信息。
+
+要想正确检阅注解，离不开一个手段，那就是反射。
+
+
+
+### 2.5.1 注解与反射
+
+ 注解通过反射获取。首先可以通过 Class 对象的 isAnnotationPresent() 方法判断它是否应用了某个注解 
+
